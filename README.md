@@ -64,6 +64,17 @@ If neither a token nor a reachable server is available, the proxy runs in passth
 Every request goes through the same decision tree. Any passthrough branch means the request is forwarded to `api.anthropic.com` **untouched** — no trimming, no injection, no modification beyond the hop itself.
 
 ```mermaid
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#f8fafc"
+    primaryBorderColor: "#cbd5e1"
+    primaryTextColor: "#0f172a"
+    lineColor: "#94a3b8"
+    fontFamily: "ui-sans-serif, system-ui, sans-serif"
+    fontSize: "13px"
+---
 flowchart TD
     A[Client: POST /v1/messages] --> B{anthropic-version<br/>header present?}
     B -->|no| X[400 — reject]
@@ -91,9 +102,9 @@ flowchart TD
     F5 --> L0
     L0 --> N
 
-    classDef pass fill:#f0f0f0,stroke:#888,color:#333
-    classDef reject fill:#fee,stroke:#c66,color:#933
-    classDef active fill:#e8f4ff,stroke:#4a9,color:#046
+    classDef pass fill:#f1f5f9,stroke:#cbd5e1,color:#475569
+    classDef reject fill:#fef2f2,stroke:#fca5a5,color:#991b1b
+    classDef active fill:#eff6ff,stroke:#93c5fd,color:#1e40af
     class F1,F2,F3,F4,F5,L0 pass
     class X,Y reject
     class I,K,L,M active
@@ -104,6 +115,23 @@ flowchart TD
 The only content-aware call the proxy makes. Everything it sends, everything it gets back:
 
 ```mermaid
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#f8fafc"
+    primaryBorderColor: "#cbd5e1"
+    primaryTextColor: "#0f172a"
+    lineColor: "#94a3b8"
+    actorBkg: "#eff6ff"
+    actorBorder: "#93c5fd"
+    actorTextColor: "#1e40af"
+    noteBkgColor: "#fefce8"
+    noteBorderColor: "#fde68a"
+    noteTextColor: "#713f12"
+    fontFamily: "ui-sans-serif, system-ui, sans-serif"
+    fontSize: "13px"
+---
 sequenceDiagram
     participant Client as Claude Code
     participant Proxy as ergosum-proxy
@@ -124,6 +152,17 @@ sequenceDiagram
 ### Lifecycle
 
 ```mermaid
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#eff6ff"
+    primaryBorderColor: "#93c5fd"
+    primaryTextColor: "#1e40af"
+    lineColor: "#94a3b8"
+    fontFamily: "ui-sans-serif, system-ui, sans-serif"
+    fontSize: "13px"
+---
 stateDiagram-v2
     [*] --> NotRunning
     NotRunning --> Running: ergosum-proxy
@@ -158,6 +197,19 @@ stateDiagram-v2
 The proxy touches one header: `x-api-key`. Default mode forwards it unchanged. `--oauth-bridge` swaps it with the Claude Code OAuth token read from the macOS keychain — nothing else.
 
 ```mermaid
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#eff6ff"
+    primaryBorderColor: "#93c5fd"
+    primaryTextColor: "#1e40af"
+    lineColor: "#94a3b8"
+    clusterBkg: "#f8fafc"
+    clusterBorder: "#e2e8f0"
+    fontFamily: "ui-sans-serif, system-ui, sans-serif"
+    fontSize: "13px"
+---
 flowchart LR
     subgraph Default["Default"]
         direction LR
@@ -210,7 +262,3 @@ MIT. See [LICENSE](./LICENSE).
 - Main ErgoSum site: https://ergosum.cc
 - MCP server: (coming soon)
 - CLI: (installed separately)
-
-## Star history
-
-[![Star History Chart](https://api.star-history.com/svg?repos=TwoErgoSum/Ergosum-Proxy&type=Date)](https://star-history.com/#TwoErgoSum/Ergosum-Proxy&Date)
