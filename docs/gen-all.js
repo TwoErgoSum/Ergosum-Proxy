@@ -6,11 +6,12 @@ const STROKE = '#1e293b';
 const MUTED = '#475569';
 const FONT = "'Caveat', 'Kalam', 'Comic Sans MS', cursive";
 
-const COL_ACTIVE = '#eff6ff';
-const COL_PASS = '#f1f5f9';
-const COL_REJECT = '#fef2f2';
-const COL_NOTE = '#fefce8';
-const COL_BG = '#f8fafc';
+const COL_ACTIVE = '#dbeafe';
+const COL_PASS = '#e2e8f0';
+const COL_REJECT = '#fee2e2';
+const COL_NOTE = '#fef3c7';
+const COL_BG = '#f1f5f9';
+const COL_PAPER = '#fbf7ef';
 
 function pathFromDrawable(drawable) {
   let d = '';
@@ -71,7 +72,7 @@ function multilabel(x, y, lines, size = 15, color = STROKE) {
 }
 
 function svgWrap(w, h, body) {
-  const bg = `<rect width="${w}" height="${h}" fill="#fdfdfb"/>`;
+  const bg = `<rect width="${w}" height="${h}" fill="${COL_PAPER}"/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" font-family="${FONT}">${bg}${body}</svg>`;
 }
 
