@@ -94,6 +94,18 @@ Set via `ergosum-proxy --mode inject|smart`.
 - All network calls have bounded timeouts
 - The proxy never logs request bodies; only request counts and token estimates to `/tmp/ergosum-proxy.log`
 
+## Contributing
+
+PRs welcome. Before submitting:
+
+- Run `npm run typecheck` and `npm run build` locally
+- For non-trivial changes, open an issue first to discuss the approach
+- Keep the proxy thin — retrieval logic, tagging schemas, and context templates belong server-side, not in this binary
+
+## Security
+
+See [SECURITY.md](./SECURITY.md). Report vulnerabilities privately to `security@ergosum.cc`.
+
 ## License
 
 MIT. See [LICENSE](./LICENSE).
