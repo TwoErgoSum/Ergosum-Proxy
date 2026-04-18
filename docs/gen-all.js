@@ -224,7 +224,7 @@ function renderFlow() {
   s += arrow(CX - 130, 990, PBX, PBY);
   s += label(CX - 200, 982, 'no', 14, MUTED);
 
-  fs.writeFileSync('/tmp/excalidraw-gen/request-flow.svg', svgWrap(W, H, s));
+  fs.writeFileSync('/tmp/excalidraw-gen/request-flow-v2.svg', svgWrap(W, H, s));
 }
 
 // ============== PREPARE EXCHANGE (sequence) ==============

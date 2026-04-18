@@ -63,7 +63,7 @@ If neither a token nor a reachable server is available, the proxy runs in passth
 
 Every request goes through the same decision tree. Any passthrough branch means the request is forwarded to `api.anthropic.com` **untouched** — no trimming, no injection, no modification beyond the hop itself.
 
-![Request flow](docs/request-flow.svg)
+![Request flow](docs/request-flow-v2.svg)
 
 ### Prepare exchange
 
