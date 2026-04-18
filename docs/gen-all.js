@@ -71,7 +71,8 @@ function multilabel(x, y, lines, size = 15, color = STROKE) {
 }
 
 function svgWrap(w, h, body) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" font-family="${FONT}">${body}</svg>`;
+  const bg = `<rect width="${w}" height="${h}" fill="#fdfdfb"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" font-family="${FONT}">${bg}${body}</svg>`;
 }
 
 // ============== AUTH MODES ==============
