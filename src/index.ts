@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import {
   startProxy,
   stopProxy,
@@ -12,6 +14,16 @@ import {
   PROXY_PORT,
   type ProxyMode,
 } from './proxy.js';
+
+function printVersion(): void {
+  for (const candidate of [join(__dirname, '..', 'package.json'), join(__dirname, 'package.json')]) {
+    try {
+      const pkg = JSON.parse(readFileSync(candidate, 'utf8')) as { version?: string };
+      if (pkg.version) { console.log(`ergosum-proxy ${pkg.version}`); return; }
+    } catch { /* try next */ }
+  }
+  console.log('ergosum-proxy (version unknown)');
+}
 
 interface ParsedArgs {
   action?: string;
@@ -72,6 +84,10 @@ function parseArgs(argv: string[]): ParsedArgs {
       case '-h':
         out.help = true;
         break;
+      case '--version':
+      case '-V':
+        out.action = 'version';
+        break;
       default:
         if (arg?.startsWith('-')) {
           console.error(`Unknown flag: ${arg}`);
@@ -98,6 +114,7 @@ ACTIONS
   logs         Tail live proxy logs (Ctrl+C to exit)
   install      Install as macOS LaunchAgent (survives reboots)
   uninstall    Kill proxy + clear ANTHROPIC_BASE_URL (restart Claude after)
+  version      Print proxy version and exit
 
 OPTIONS
   -p, --port <n>         Port (default ${PROXY_PORT})
@@ -107,6 +124,7 @@ OPTIONS
       --foreground       Run in foreground (internal — used by background spawn)
       --persistent       Do not clear ANTHROPIC_BASE_URL on shutdown (used by LaunchAgent)
       --oauth-bridge     Swap x-api-key with Claude Code OAuth token from macOS Keychain
+  -V, --version          Print version and exit
   -h, --help             Show this help
 
 ENV
@@ -158,6 +176,9 @@ function main(): void {
       return;
     case 'uninstall':
       uninstallProxy();
+      return;
+    case 'version':
+      printVersion();
       return;
     case undefined:
       if (args.foreground) {
