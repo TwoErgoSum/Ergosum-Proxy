@@ -113,7 +113,7 @@ function renderAuth() {
   s += label(635, 265, 'oauth-…', 14, MUTED);
   s += arrow(470, 330, 470, 315, true);
 
-  fs.writeFileSync('/tmp/excalidraw-gen/auth.svg', svgWrap(W, H, s));
+  fs.writeFileSync('/tmp/excalidraw-gen/auth-modes.svg', svgWrap(W, H, s));
 }
 
 // ============== REQUEST FLOW ==============
@@ -240,7 +240,7 @@ function renderFlow() {
   // L0 -> N
   s += arrow(LEFT + 80, 1225, CX - 180, 1455);
 
-  fs.writeFileSync('/tmp/excalidraw-gen/flow.svg', svgWrap(W, H, s));
+  fs.writeFileSync('/tmp/excalidraw-gen/request-flow.svg', svgWrap(W, H, s));
 }
 
 // ============== PREPARE EXCHANGE (sequence) ==============
@@ -303,7 +303,7 @@ function renderSequence() {
 
   msg(actors[1].x, actors[0].x, 590, 'SSE stream (patched)', true);
 
-  fs.writeFileSync('/tmp/excalidraw-gen/sequence.svg', svgWrap(W, H, s));
+  fs.writeFileSync('/tmp/excalidraw-gen/prepare-exchange.svg', svgWrap(W, H, s));
 }
 
 // ============== LIFECYCLE (state diagram) ==============
@@ -383,7 +383,7 @@ function renderLifecycle() {
   s += arrow(540, 260, 540, 120);
   s += label(555, 195, 'uninstall', 13, MUTED, 'start');
 
-  fs.writeFileSync('/tmp/excalidraw-gen/lifecycle.svg', svgWrap(W, H, s));
+  fs.writeFileSync('/tmp/excalidraw-gen/proxy-lifecycle.svg', svgWrap(W, H, s));
 }
 
 renderAuth();

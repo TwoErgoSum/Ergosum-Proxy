@@ -63,17 +63,17 @@ If neither a token nor a reachable server is available, the proxy runs in passth
 
 Every request goes through the same decision tree. Any passthrough branch means the request is forwarded to `api.anthropic.com` **untouched** — no trimming, no injection, no modification beyond the hop itself.
 
-![Request flow](docs/flow.svg)
+![Request flow](docs/request-flow.svg)
 
 ### Prepare exchange
 
 The only content-aware call the proxy makes. Everything it sends, everything it gets back:
 
-![Prepare exchange](docs/sequence.svg)
+![Prepare exchange](docs/prepare-exchange.svg)
 
 ### Lifecycle
 
-![Lifecycle](docs/lifecycle.svg)
+![Lifecycle](docs/proxy-lifecycle.svg)
 
 `stop` and `uninstall` are different on purpose: killing the proxy while Claude Code has `ANTHROPIC_BASE_URL` pointed at it would break the live session. `stop` instead flips the proxy into passthrough mode so the connection stays open while trimming pauses.
 
@@ -81,7 +81,7 @@ The only content-aware call the proxy makes. Everything it sends, everything it 
 
 The proxy touches one header: `x-api-key`. Default mode forwards it unchanged. `--oauth-bridge` swaps it with the Claude Code OAuth token read from the macOS keychain — nothing else.
 
-![Auth modes](docs/auth.svg)
+![Auth modes](docs/auth-modes.svg)
 
 `Authorization: Bearer …` headers (OpenAI, Codex, any other provider) are never touched in either mode.
 
