@@ -228,17 +228,18 @@ function renderFlow() {
   s += arrow(CX, 1250, CX, 1300); // L -> M
   s += arrow(CX, 1356, CX, 1430); // M -> N
 
-  // Left passthrough spine: F1..F5 all flow down to L0 at y=1200
-  s += arrow(LEFT, 425, LEFT, 495, true);    // F1 -> F2 area visual trail
-  // To keep it clean, draw single flowing line down from F1 to L0
-  for (const fy of [425, 545, 665, 785, 1015]) {
-    const dy = fy + 20;
-    s += line(LEFT, dy, LEFT, 1200); // down trail
-  }
-  s += arrow(LEFT, 1200, LEFT, 1200);
+  // Passthrough chain: F1 -> F2 -> F3 -> F4 -> F5 -> L0 (one short arrow between adjacent boxes)
+  // Box y-centers: 400, 520, 640, 760, 990; L0 at 1200
+  // Bottoms: 425, 545, 665, 785, 1015; Tops: 375, 495, 615, 735, 965
+  s += arrow(LEFT, 425, LEFT, 495);   // F1 -> F2
+  s += arrow(LEFT, 545, LEFT, 615);   // F2 -> F3
+  s += arrow(LEFT, 665, LEFT, 735);   // F3 -> F4
+  s += arrow(LEFT, 785, LEFT, 965);   // F4 -> F5 (skips over I on the main spine)
+  s += arrow(LEFT, 1015, LEFT, 1200); // F5 -> L0
 
-  // L0 -> N
-  s += arrow(LEFT + 80, 1225, CX - 180, 1455);
+  // L0 -> N (horizontal then down into N's left edge)
+  s += line(LEFT + 80, 1228, 340, 1228);
+  s += arrow(340, 1228, CX - 180, 1455);
 
   fs.writeFileSync('/tmp/excalidraw-gen/request-flow.svg', svgWrap(W, H, s));
 }
@@ -306,63 +307,7 @@ function renderSequence() {
   fs.writeFileSync('/tmp/excalidraw-gen/prepare-exchange.svg', svgWrap(W, H, s));
 }
 
-// ============== LIFECYCLE (state diagram) ==============
-function renderLifecycle() {
-  const W = 1100, H = 560;
-  let s = '';
-
-  function state(x, y, w, h, title, fill = COL_ACTIVE) {
-    s += rect(x, y, w, h, fill);
-    s += label(x + w/2, y + h/2, title, 17);
-  }
-
-  // [*] start marker
-  s += `<circle cx="60" cy="90" r="10" fill="${STROKE}"/>`;
-
-  state(450, 60, 200, 60, 'NotRunning', COL_BG);
-  state(100, 260, 200, 60, 'Running');
-  state(450, 260, 200, 60, 'Paused', COL_PASS);
-  state(800, 260, 220, 60, 'LaunchAgent');
-
-  // [*] -> NotRunning
-  s += arrow(70, 90, 450, 90);
-
-  // NotRunning -> Running
-  s += arrow(500, 120, 230, 260);
-  s += label(340, 180, 'ergosum-proxy', 13, MUTED);
-
-  // NotRunning -> LaunchAgent
-  s += arrow(600, 120, 870, 260);
-  s += label(760, 180, 'install', 13, MUTED);
-
-  // Running <-> Paused (stacked pair, non-overlapping)
-  s += arrow(300, 278, 450, 278);
-  s += label(375, 266, 'stop', 13, MUTED);
-  s += arrow(450, 302, 300, 302);
-  s += label(375, 316, 'resume', 13, MUTED);
-
-  // LaunchAgent -> Paused
-  s += arrow(800, 290, 650, 290);
-  s += label(725, 278, 'stop', 13, MUTED);
-
-  // Notes beneath each state
-  function noteBox(x, y, w, lines) {
-    const h = lines.length * 16 + 14;
-    s += rect(x, y, w, h, COL_NOTE);
-    lines.forEach((t, i) => s += label(x + w/2, y + 14 + i * 16, t, 12, MUTED));
-  }
-  noteBox(100, 360, 200, ['ANTHROPIC_BASE_URL set', 'trimming active']);
-  noteBox(450, 360, 200, ['proxy still up', 'passthrough mode', 'Claude Code stays connected']);
-  noteBox(800, 360, 220, ['survives reboots', 'starts on login', 'runs with --persistent']);
-
-  // Footer: uninstall applies to all states
-  s += label(W/2, 490, 'ergosum-proxy uninstall  →  any state returns to NotRunning', 15, MUTED);
-
-  fs.writeFileSync('/tmp/excalidraw-gen/proxy-lifecycle.svg', svgWrap(W, H, s));
-}
-
 renderAuth();
 renderFlow();
 renderSequence();
-renderLifecycle();
-console.log('wrote all 4 SVGs');
+console.log('wrote 3 SVGs');

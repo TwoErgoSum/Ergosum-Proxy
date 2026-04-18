@@ -73,9 +73,7 @@ The only content-aware call the proxy makes. Everything it sends, everything it 
 
 ### Lifecycle
 
-![Lifecycle](docs/proxy-lifecycle.svg)
-
-`stop` and `uninstall` are different on purpose: killing the proxy while Claude Code has `ANTHROPIC_BASE_URL` pointed at it would break the live session. `stop` instead flips the proxy into passthrough mode so the connection stays open while trimming pauses.
+`stop` and `uninstall` are different on purpose: killing the proxy while Claude Code has `ANTHROPIC_BASE_URL` pointed at it would break the live session. `stop` instead flips the proxy into passthrough mode so the connection stays open while trimming pauses. `install` registers the proxy as a macOS LaunchAgent so it survives reboots; `uninstall` reverses everything.
 
 ### Auth modes
 
