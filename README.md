@@ -64,6 +64,11 @@ If neither a token nor a reachable server is available, the proxy runs in passth
 Every request goes through the same decision tree. Any passthrough branch means the request is forwarded to `api.anthropic.com` **untouched** — no trimming, no injection, no modification beyond the hop itself.
 
 ```mermaid
+---
+config:
+  look: handDrawn
+  theme: neutral
+---
 flowchart TD
     A[Client: POST /v1/messages] --> B{anthropic-version<br/>header present?}
     B -->|no| X[400 — reject]
@@ -104,6 +109,11 @@ flowchart TD
 The only content-aware call the proxy makes. Everything it sends, everything it gets back:
 
 ```mermaid
+---
+config:
+  look: handDrawn
+  theme: neutral
+---
 sequenceDiagram
     participant Client as Claude Code
     participant Proxy as ergosum-proxy
@@ -124,6 +134,11 @@ sequenceDiagram
 ### Lifecycle
 
 ```mermaid
+---
+config:
+  look: handDrawn
+  theme: neutral
+---
 stateDiagram-v2
     [*] --> NotRunning
     NotRunning --> Running: ergosum-proxy
@@ -158,6 +173,11 @@ stateDiagram-v2
 The proxy touches one header: `x-api-key`. Default mode forwards it unchanged. `--oauth-bridge` swaps it with the Claude Code OAuth token read from the macOS keychain — nothing else.
 
 ```mermaid
+---
+config:
+  look: handDrawn
+  theme: neutral
+---
 flowchart LR
     subgraph Default["Default"]
         direction LR
