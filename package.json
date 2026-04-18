@@ -1,0 +1,43 @@
+{
+  "name": "@ergosum/proxy",
+  "version": "0.1.0",
+  "description": "Local proxy that intercepts Claude Code / Anthropic API calls and injects ErgoSum workspace context.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TwoErgoSum/Ergosum-Proxy.git"
+  },
+  "homepage": "https://ergosum.cc",
+  "bin": {
+    "ergosum-proxy": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "ergosum",
+    "proxy",
+    "claude",
+    "claude-code",
+    "anthropic",
+    "context",
+    "memory",
+    "llm"
+  ]
+}
