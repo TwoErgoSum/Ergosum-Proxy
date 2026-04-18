@@ -30,6 +30,9 @@ npm install -g @ergosum/proxy
 # Start the proxy in the background (port 49200)
 ergosum-proxy
 
+# Print version
+ergosum-proxy version
+
 # Check status
 ergosum-proxy status
 
