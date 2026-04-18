@@ -308,80 +308,55 @@ function renderSequence() {
 
 // ============== LIFECYCLE (state diagram) ==============
 function renderLifecycle() {
-  const W = 1100, H = 700;
+  const W = 1100, H = 560;
   let s = '';
 
-  // States
   function state(x, y, w, h, title, fill = COL_ACTIVE) {
     s += rect(x, y, w, h, fill);
     s += label(x + w/2, y + h/2, title, 17);
   }
 
-  // Start dot
-  s += `<circle cx="80" cy="80" r="10" fill="${STROKE}"/>`;
+  // [*] start marker
+  s += `<circle cx="60" cy="90" r="10" fill="${STROKE}"/>`;
 
-  // NotRunning (center-top)
-  state(430, 60, 200, 60, 'NotRunning', COL_BG);
-
-  // Running (left)
+  state(450, 60, 200, 60, 'NotRunning', COL_BG);
   state(100, 260, 200, 60, 'Running');
+  state(450, 260, 200, 60, 'Paused', COL_PASS);
+  state(800, 260, 220, 60, 'LaunchAgent');
 
-  // LaunchAgent (right)
-  state(780, 260, 220, 60, 'LaunchAgent');
-
-  // Paused (middle)
-  state(440, 260, 200, 60, 'Paused', COL_PASS);
-
-  // Notes (side)
-  function noteBox(x, y, w, lines, title) {
-    const h = 16 + lines.length * 16 + 8;
-    s += rect(x, y, w, h, COL_NOTE);
-    s += label(x + w/2, y + 14, title, 14);
-    lines.forEach((t, i) => s += label(x + w/2, y + 30 + i * 16, t, 12, MUTED));
-  }
-
-  noteBox(100, 400, 200, ['ANTHROPIC_BASE_URL set', 'trimming active'], 'Running');
-  noteBox(440, 400, 200, ['proxy still up', 'passthrough mode', 'Claude Code stays connected'], 'Paused');
-  noteBox(780, 400, 220, ['survives reboots', 'starts on login', 'runs with --persistent'], 'LaunchAgent');
-
-  // Arrows from start to NotRunning
-  s += arrow(80, 90, 430, 90);
+  // [*] -> NotRunning
+  s += arrow(70, 90, 450, 90);
 
   // NotRunning -> Running
-  s += arrow(430, 105, 200, 260);
-  s += label(270, 170, 'ergosum-proxy', 13, MUTED);
+  s += arrow(500, 120, 230, 260);
+  s += label(340, 180, 'ergosum-proxy', 13, MUTED);
 
   // NotRunning -> LaunchAgent
-  s += arrow(630, 105, 880, 260);
-  s += label(790, 170, 'install', 13, MUTED);
+  s += arrow(600, 120, 870, 260);
+  s += label(760, 180, 'install', 13, MUTED);
 
-  // Running -> Paused
-  s += arrow(300, 290, 440, 290);
-  s += label(370, 280, 'stop', 13, MUTED);
+  // Running <-> Paused (stacked pair, non-overlapping)
+  s += arrow(300, 278, 450, 278);
+  s += label(375, 266, 'stop', 13, MUTED);
+  s += arrow(450, 302, 300, 302);
+  s += label(375, 316, 'resume', 13, MUTED);
 
-  // LaunchAgent -> Paused (curved would be nice, use line)
-  s += arrow(780, 305, 640, 305);
-  s += label(710, 295, 'stop', 13, MUTED);
+  // LaunchAgent -> Paused
+  s += arrow(800, 290, 650, 290);
+  s += label(725, 278, 'stop', 13, MUTED);
 
-  // Paused -> Running (below)
-  s += arrow(440, 300, 300, 300);
-  s += label(370, 315, 'resume', 13, MUTED);
+  // Notes beneath each state
+  function noteBox(x, y, w, lines) {
+    const h = lines.length * 16 + 14;
+    s += rect(x, y, w, h, COL_NOTE);
+    lines.forEach((t, i) => s += label(x + w/2, y + 14 + i * 16, t, 12, MUTED));
+  }
+  noteBox(100, 360, 200, ['ANTHROPIC_BASE_URL set', 'trimming active']);
+  noteBox(450, 360, 200, ['proxy still up', 'passthrough mode', 'Claude Code stays connected']);
+  noteBox(800, 360, 220, ['survives reboots', 'starts on login', 'runs with --persistent']);
 
-  // Running -> NotRunning (curve back via left edge) - use a line going up then right
-  s += line(200, 260, 200, 210);
-  s += line(200, 210, 530, 210);
-  s += arrow(530, 210, 530, 120);
-  s += label(370, 205, 'uninstall', 13, MUTED);
-
-  // LaunchAgent -> NotRunning (curve back via right edge)
-  s += line(880, 260, 880, 200);
-  s += line(880, 200, 570, 200);
-  s += arrow(570, 200, 570, 120);
-  s += label(730, 195, 'uninstall', 13, MUTED);
-
-  // Paused -> NotRunning (straight up)
-  s += arrow(540, 260, 540, 120);
-  s += label(555, 195, 'uninstall', 13, MUTED, 'start');
+  // Footer: uninstall applies to all states
+  s += label(W/2, 490, 'ergosum-proxy uninstall  →  any state returns to NotRunning', 15, MUTED);
 
   fs.writeFileSync('/tmp/excalidraw-gen/proxy-lifecycle.svg', svgWrap(W, H, s));
 }
