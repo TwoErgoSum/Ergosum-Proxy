@@ -170,9 +170,9 @@ function renderFlow() {
   s += rect(CX - 180, 1430, 360, 50, COL_ACTIVE);
   s += label(CX, 1455, 'stream response to client', 16);
 
-  // Passthrough: single destination box on the left. All off-branches converge here via diagonal arrows.
-  s += rect(LEFT - 100, 1175, 200, 80, COL_PASS);
-  s += multilabel(LEFT, 1215, ['passthrough:', 'forward to', 'api.anthropic.com'], 14, MUTED);
+  // Passthrough: single destination box on the left, vertically centered among off-branches.
+  s += rect(LEFT - 100, 655, 200, 80, COL_PASS);
+  s += multilabel(LEFT, 695, ['passthrough:', 'forward to', 'api.anthropic.com'], 14, MUTED);
 
   // Arrows
   // Main spine
@@ -211,8 +211,8 @@ function renderFlow() {
   s += arrow(CX, 1356, CX, 1430);
 
   // Off-branches converge on single passthrough box via diagonals
-  // Passthrough box: x=80-280, y=1175-1255; target entry point ~ (280, 1215) right-edge
-  const PBX = 280, PBY = 1215;
+  // Passthrough box: x=80-280, y=655-735; target entry point ~ (280, 695) right-edge
+  const PBX = 280, PBY = 695;
   s += arrow(CX - 130, 400, PBX, PBY);
   s += label(CX - 200, 392, 'no', 14, MUTED);
   s += arrow(CX - 130, 520, PBX, PBY);
@@ -223,9 +223,6 @@ function renderFlow() {
   s += label(CX - 200, 752, 'no', 14, MUTED);
   s += arrow(CX - 130, 990, PBX, PBY);
   s += label(CX - 200, 982, 'no', 14, MUTED);
-
-  // Passthrough -> N (diagonal from box bottom to N left)
-  s += arrow(LEFT, 1255, CX - 180, 1455);
 
   fs.writeFileSync('/tmp/excalidraw-gen/request-flow.svg', svgWrap(W, H, s));
 }
