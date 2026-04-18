@@ -199,34 +199,7 @@ stateDiagram-v2
 
 The proxy touches one header: `x-api-key`. Default mode forwards it unchanged. `--oauth-bridge` swaps it with the Claude Code OAuth token read from the macOS keychain — nothing else.
 
-```mermaid
----
-config:
-  look: handDrawn
-  theme: base
-  themeVariables:
-    primaryColor: "#eff6ff"
-    primaryBorderColor: "#93c5fd"
-    primaryTextColor: "#1e40af"
-    lineColor: "#94a3b8"
-    clusterBkg: "#f8fafc"
-    clusterBorder: "#e2e8f0"
-    fontFamily: "ui-sans-serif, system-ui, sans-serif"
-    fontSize: "13px"
----
-flowchart LR
-    subgraph Default["Default"]
-        direction LR
-        C1[Client] -->|"x-api-key: sk-ant-…"| P1[Proxy]
-        P1 -->|"x-api-key: sk-ant-… (unchanged)"| A1[api.anthropic.com]
-    end
-    subgraph Bridge["--oauth-bridge"]
-        direction LR
-        C2[Client] -->|"x-api-key: sk-ant-…"| P2[Proxy]
-        K[(macOS Keychain<br/>Claude Code-credentials)] -.->|security find-generic-password| P2
-        P2 -->|"x-api-key: oauth-…"| A2[api.anthropic.com]
-    end
-```
+![Auth modes](docs/auth.svg)
 
 `Authorization: Bearer …` headers (OpenAI, Codex, any other provider) are never touched in either mode.
 
