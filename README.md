@@ -59,25 +59,119 @@ If neither a token nor a reachable server is available, the proxy runs in passth
 
 ## How it works
 
-```
-┌─────────────┐    /v1/messages     ┌─────────────┐    POST /api/cli/proxy/prepare    ┌──────────────┐
-│ Claude Code │ ──────────────────► │   Proxy     │ ────────────────────────────────► │ ErgoSum API  │
-│             │                     │ :49200      │ ◄──────────────── trimmed msgs ── │              │
-└─────────────┘                     └─────────────┘                                   └──────────────┘
-                                           │
-                                           │  forward (patched SSE input_tokens)
-                                           ▼
-                                    ┌─────────────┐
-                                    │ api.anthropic.com │
-                                    └─────────────┘
+### Request flow
+
+Every request goes through the same decision tree. Any passthrough branch means the request is forwarded to `api.anthropic.com` **untouched** — no trimming, no injection, no modification beyond the hop itself.
+
+```mermaid
+flowchart TD
+    A[Client: POST /v1/messages] --> B{anthropic-version<br/>header present?}
+    B -->|no| X[400 — reject]
+    B -->|yes| C{path starts with /v1/?}
+    C -->|no| Y[403 — forbidden]
+    C -->|yes| D{/v1/messages<br/>or count_tokens?}
+    D -->|no| F1[passthrough]
+    D -->|yes| E{proxy paused?}
+    E -->|yes| F2[passthrough]
+    E -->|no| G{thinking-state<br/>in request?}
+    G -->|yes| F3[passthrough]
+    G -->|no| H{token +<br/>server reachable?}
+    H -->|no| F4[passthrough]
+    H -->|yes| I[POST /api/cli/proxy/prepare<br/>800ms budget]
+    I --> J{server responded<br/>in time?}
+    J -->|no| F5[passthrough]
+    J -->|yes| K[trim messages<br/>+ append system_fragment]
+    K --> L[forward to api.anthropic.com]
+    L --> M[patch input_tokens<br/>in SSE message_start]
+    M --> N[stream response to client]
+    F1 --> L0[forward to<br/>api.anthropic.com]
+    F2 --> L0
+    F3 --> L0
+    F4 --> L0
+    F5 --> L0
+    L0 --> N
+
+    classDef pass fill:#f0f0f0,stroke:#888,color:#333
+    classDef reject fill:#fee,stroke:#c66,color:#933
+    classDef active fill:#e8f4ff,stroke:#4a9,color:#046
+    class F1,F2,F3,F4,F5,L0 pass
+    class X,Y reject
+    class I,K,L,M active
 ```
 
-1. Client sends `POST /v1/messages` to `localhost:49200`
-2. Proxy calls `POST /api/cli/proxy/prepare` on the ErgoSum server (800ms budget — passthrough on timeout)
-3. Server returns a trimmed `messages` array + a `system_fragment` to append
-4. Proxy appends the fragment to the request's `system` field
-5. Proxy forwards the trimmed request to `api.anthropic.com`
-6. Proxy patches `input_tokens` in the SSE `message_start` event so Claude Code's auto-compact counter reflects the trimmed size
+### Prepare exchange
+
+The only content-aware call the proxy makes. Everything it sends, everything it gets back:
+
+```mermaid
+sequenceDiagram
+    participant Client as Claude Code
+    participant Proxy as ergosum-proxy
+    participant Server as ErgoSum server
+    participant Anthropic as api.anthropic.com
+
+    Client->>Proxy: POST /v1/messages<br/>{messages, system, ...}
+    Proxy->>Server: POST /api/cli/proxy/prepare<br/>{messages, window_tokens,<br/>last_user_text, session_id}
+    Note over Server: priority-aware pair drop<br/>+ semantic retrieval<br/>+ archive dropped turns
+    Server-->>Proxy: {messages, system_fragment,<br/>trimmed_count, retrieved_sections}
+    Note over Proxy: append system_fragment<br/>to request.system
+    Proxy->>Anthropic: POST /v1/messages (trimmed)
+    Anthropic-->>Proxy: SSE stream
+    Note over Proxy: patch input_tokens<br/>in message_start event
+    Proxy-->>Client: SSE stream (patched)
+```
+
+### Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> NotRunning
+    NotRunning --> Running: ergosum-proxy
+    NotRunning --> LaunchAgent: ergosum-proxy install
+    Running --> Paused: ergosum-proxy stop
+    Paused --> Running: ergosum-proxy (resume)
+    Running --> NotRunning: ergosum-proxy uninstall
+    Paused --> NotRunning: ergosum-proxy uninstall
+    LaunchAgent --> NotRunning: ergosum-proxy uninstall
+
+    note right of Running
+        ANTHROPIC_BASE_URL set
+        trimming active
+    end note
+    note right of Paused
+        proxy still up
+        passthrough mode
+        Claude Code stays connected
+    end note
+    note right of LaunchAgent
+        survives reboot
+        starts on login
+        --persistent flag on
+    end note
+```
+
+`stop` and `uninstall` are different on purpose: killing the proxy while Claude Code has `ANTHROPIC_BASE_URL` pointed at it would break the live session. `stop` instead flips the proxy into passthrough mode so the connection stays open while trimming pauses.
+
+### Auth modes
+
+The proxy touches one header: `x-api-key`. Default mode forwards it unchanged. `--oauth-bridge` swaps it with the Claude Code OAuth token read from the macOS keychain — nothing else.
+
+```mermaid
+flowchart LR
+    subgraph Default["Default"]
+        direction LR
+        C1[Client] -->|"x-api-key: sk-ant-…"| P1[Proxy]
+        P1 -->|"x-api-key: sk-ant-… (unchanged)"| A1[api.anthropic.com]
+    end
+    subgraph Bridge["--oauth-bridge"]
+        direction LR
+        C2[Client] -->|"x-api-key: sk-ant-…"| P2[Proxy]
+        K[(macOS Keychain<br/>Claude Code-credentials)] -.->|security find-generic-password| P2
+        P2 -->|"x-api-key: oauth-…"| A2[api.anthropic.com]
+    end
+```
+
+`Authorization: Bearer …` headers (OpenAI, Codex, any other provider) are never touched in either mode.
 
 ## Modes
 
