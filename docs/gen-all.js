@@ -143,31 +143,20 @@ function renderFlow() {
   s += diamond(CX, 400, 260, 80, COL_BG);
   s += multilabel(CX, 400, ['/v1/messages', 'or count_tokens?'], 15);
 
-  s += rect(LEFT - 80, 375, 160, 50, COL_PASS);
-  s += label(LEFT, 400, 'passthrough', 16, MUTED);
-
   s += diamond(CX, 520, 260, 80, COL_BG);
   s += label(CX, 520, 'proxy paused?', 15);
-  s += rect(LEFT - 80, 495, 160, 50, COL_PASS);
-  s += label(LEFT, 520, 'passthrough', 16, MUTED);
 
   s += diamond(CX, 640, 260, 80, COL_BG);
   s += multilabel(CX, 640, ['thinking-state', 'in request?'], 15);
-  s += rect(LEFT - 80, 615, 160, 50, COL_PASS);
-  s += label(LEFT, 640, 'passthrough', 16, MUTED);
 
   s += diamond(CX, 760, 260, 80, COL_BG);
   s += multilabel(CX, 760, ['token +', 'server reachable?'], 15);
-  s += rect(LEFT - 80, 735, 160, 50, COL_PASS);
-  s += label(LEFT, 760, 'passthrough', 16, MUTED);
 
   s += rect(CX - 180, 860, 360, 56, COL_ACTIVE);
   s += multilabel(CX, 888, ['POST /api/cli/proxy/prepare', '800ms budget'], 15);
 
   s += diamond(CX, 990, 260, 80, COL_BG);
   s += multilabel(CX, 990, ['server responded', 'in time?'], 15);
-  s += rect(LEFT - 80, 965, 160, 50, COL_PASS);
-  s += label(LEFT, 990, 'passthrough', 16, MUTED);
 
   s += rect(CX - 180, 1090, 360, 56, COL_ACTIVE);
   s += multilabel(CX, 1118, ['trim messages', '+ append system_fragment'], 15);
@@ -181,9 +170,9 @@ function renderFlow() {
   s += rect(CX - 180, 1430, 360, 50, COL_ACTIVE);
   s += label(CX, 1455, 'stream response to client', 16);
 
-  // Passthrough merge column
-  s += rect(LEFT - 80, 1200, 160, 56, COL_PASS);
-  s += multilabel(LEFT, 1228, ['forward to', 'api.anthropic.com'], 14, MUTED);
+  // Passthrough: single destination box on the left. All off-branches converge here via diagonal arrows.
+  s += rect(LEFT - 100, 1175, 200, 80, COL_PASS);
+  s += multilabel(LEFT, 1215, ['passthrough:', 'forward to', 'api.anthropic.com'], 14, MUTED);
 
   // Arrows
   // Main spine
@@ -198,48 +187,45 @@ function renderFlow() {
   s += arrow(CX, 320, CX, 360);  // C -> D
   s += label(CX - 30, 340, 'yes', 14, MUTED);
 
-  s += arrow(CX - 130, 400, LEFT + 80, 400);
-  s += label((CX-130+LEFT+80)/2, 390, 'no', 14, MUTED);
-  s += arrow(CX, 440, CX, 480);  // D -> E
+  // D -> E (yes continues down)
+  s += arrow(CX, 440, CX, 480);
   s += label(CX - 30, 460, 'yes', 14, MUTED);
-
-  s += arrow(CX - 130, 520, LEFT + 80, 520);
-  s += label((CX-130+LEFT+80)/2, 510, 'yes', 14, MUTED);
-  s += arrow(CX, 560, CX, 600);  // E -> G
+  // E -> G
+  s += arrow(CX, 560, CX, 600);
   s += label(CX - 30, 580, 'no', 14, MUTED);
-
-  s += arrow(CX - 130, 640, LEFT + 80, 640);
-  s += label((CX-130+LEFT+80)/2, 630, 'yes', 14, MUTED);
-  s += arrow(CX, 680, CX, 720);  // G -> H
+  // G -> H
+  s += arrow(CX, 680, CX, 720);
   s += label(CX - 30, 700, 'no', 14, MUTED);
-
-  s += arrow(CX - 130, 760, LEFT + 80, 760);
-  s += label((CX-130+LEFT+80)/2, 750, 'no', 14, MUTED);
-  s += arrow(CX, 800, CX, 860);  // H -> I
+  // H -> I
+  s += arrow(CX, 800, CX, 860);
   s += label(CX - 30, 830, 'yes', 14, MUTED);
-
-  s += arrow(CX, 916, CX, 950);  // I -> J
-  s += arrow(CX - 130, 990, LEFT + 80, 990);
-  s += label((CX-130+LEFT+80)/2, 980, 'no', 14, MUTED);
-  s += arrow(CX, 1030, CX, 1090); // J -> K
+  // I -> J
+  s += arrow(CX, 916, CX, 950);
+  // J -> K
+  s += arrow(CX, 1030, CX, 1090);
   s += label(CX - 30, 1060, 'yes', 14, MUTED);
 
-  s += arrow(CX, 1146, CX, 1200); // K -> L
-  s += arrow(CX, 1250, CX, 1300); // L -> M
-  s += arrow(CX, 1356, CX, 1430); // M -> N
+  // K -> L -> M -> N
+  s += arrow(CX, 1146, CX, 1200);
+  s += arrow(CX, 1250, CX, 1300);
+  s += arrow(CX, 1356, CX, 1430);
 
-  // Passthrough chain: F1 -> F2 -> F3 -> F4 -> F5 -> L0 (one short arrow between adjacent boxes)
-  // Box y-centers: 400, 520, 640, 760, 990; L0 at 1200
-  // Bottoms: 425, 545, 665, 785, 1015; Tops: 375, 495, 615, 735, 965
-  s += arrow(LEFT, 425, LEFT, 495);   // F1 -> F2
-  s += arrow(LEFT, 545, LEFT, 615);   // F2 -> F3
-  s += arrow(LEFT, 665, LEFT, 735);   // F3 -> F4
-  s += arrow(LEFT, 785, LEFT, 965);   // F4 -> F5 (skips over I on the main spine)
-  s += arrow(LEFT, 1015, LEFT, 1200); // F5 -> L0
+  // Off-branches converge on single passthrough box via diagonals
+  // Passthrough box: x=80-280, y=1175-1255; target entry point ~ (280, 1215) right-edge
+  const PBX = 280, PBY = 1215;
+  s += arrow(CX - 130, 400, PBX, PBY);
+  s += label(CX - 200, 392, 'no', 14, MUTED);
+  s += arrow(CX - 130, 520, PBX, PBY);
+  s += label(CX - 200, 512, 'yes', 14, MUTED);
+  s += arrow(CX - 130, 640, PBX, PBY);
+  s += label(CX - 200, 632, 'yes', 14, MUTED);
+  s += arrow(CX - 130, 760, PBX, PBY);
+  s += label(CX - 200, 752, 'no', 14, MUTED);
+  s += arrow(CX - 130, 990, PBX, PBY);
+  s += label(CX - 200, 982, 'no', 14, MUTED);
 
-  // L0 -> N (horizontal then down into N's left edge)
-  s += line(LEFT + 80, 1228, 340, 1228);
-  s += arrow(340, 1228, CX - 180, 1455);
+  // Passthrough -> N (diagonal from box bottom to N left)
+  s += arrow(LEFT, 1255, CX - 180, 1455);
 
   fs.writeFileSync('/tmp/excalidraw-gen/request-flow.svg', svgWrap(W, H, s));
 }
