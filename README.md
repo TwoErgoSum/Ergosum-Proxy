@@ -63,135 +63,17 @@ If neither a token nor a reachable server is available, the proxy runs in passth
 
 Every request goes through the same decision tree. Any passthrough branch means the request is forwarded to `api.anthropic.com` **untouched** — no trimming, no injection, no modification beyond the hop itself.
 
-```mermaid
----
-config:
-  look: handDrawn
-  theme: base
-  themeVariables:
-    primaryColor: "#f8fafc"
-    primaryBorderColor: "#cbd5e1"
-    primaryTextColor: "#0f172a"
-    lineColor: "#94a3b8"
-    fontFamily: "ui-sans-serif, system-ui, sans-serif"
-    fontSize: "13px"
----
-flowchart TD
-    A[Client: POST /v1/messages] --> B{anthropic-version<br/>header present?}
-    B -->|no| X[400 — reject]
-    B -->|yes| C{path starts with /v1/?}
-    C -->|no| Y[403 — forbidden]
-    C -->|yes| D{/v1/messages<br/>or count_tokens?}
-    D -->|no| F1[passthrough]
-    D -->|yes| E{proxy paused?}
-    E -->|yes| F2[passthrough]
-    E -->|no| G{thinking-state<br/>in request?}
-    G -->|yes| F3[passthrough]
-    G -->|no| H{token +<br/>server reachable?}
-    H -->|no| F4[passthrough]
-    H -->|yes| I[POST /api/cli/proxy/prepare<br/>800ms budget]
-    I --> J{server responded<br/>in time?}
-    J -->|no| F5[passthrough]
-    J -->|yes| K[trim messages<br/>+ append system_fragment]
-    K --> L[forward to api.anthropic.com]
-    L --> M[patch input_tokens<br/>in SSE message_start]
-    M --> N[stream response to client]
-    F1 --> L0[forward to<br/>api.anthropic.com]
-    F2 --> L0
-    F3 --> L0
-    F4 --> L0
-    F5 --> L0
-    L0 --> N
-
-    classDef pass fill:#f1f5f9,stroke:#cbd5e1,color:#475569
-    classDef reject fill:#fef2f2,stroke:#fca5a5,color:#991b1b
-    classDef active fill:#eff6ff,stroke:#93c5fd,color:#1e40af
-    class F1,F2,F3,F4,F5,L0 pass
-    class X,Y reject
-    class I,K,L,M active
-```
+![Request flow](docs/flow.svg)
 
 ### Prepare exchange
 
 The only content-aware call the proxy makes. Everything it sends, everything it gets back:
 
-```mermaid
----
-config:
-  look: handDrawn
-  theme: base
-  themeVariables:
-    primaryColor: "#f8fafc"
-    primaryBorderColor: "#cbd5e1"
-    primaryTextColor: "#0f172a"
-    lineColor: "#94a3b8"
-    actorBkg: "#eff6ff"
-    actorBorder: "#93c5fd"
-    actorTextColor: "#1e40af"
-    noteBkgColor: "#fefce8"
-    noteBorderColor: "#fde68a"
-    noteTextColor: "#713f12"
-    fontFamily: "ui-sans-serif, system-ui, sans-serif"
-    fontSize: "13px"
----
-sequenceDiagram
-    participant Client as Claude Code
-    participant Proxy as ergosum-proxy
-    participant Server as ErgoSum server
-    participant Anthropic as api.anthropic.com
-
-    Client->>Proxy: POST /v1/messages<br/>{messages, system, ...}
-    Proxy->>Server: POST /api/cli/proxy/prepare<br/>{messages, window_tokens,<br/>last_user_text, session_id}
-    Note over Server: priority-aware pair drop<br/>+ semantic retrieval<br/>+ archive dropped turns
-    Server-->>Proxy: {messages, system_fragment,<br/>trimmed_count, retrieved_sections}
-    Note over Proxy: append system_fragment<br/>to request.system
-    Proxy->>Anthropic: POST /v1/messages (trimmed)
-    Anthropic-->>Proxy: SSE stream
-    Note over Proxy: patch input_tokens<br/>in message_start event
-    Proxy-->>Client: SSE stream (patched)
-```
+![Prepare exchange](docs/sequence.svg)
 
 ### Lifecycle
 
-```mermaid
----
-config:
-  look: handDrawn
-  theme: base
-  themeVariables:
-    primaryColor: "#eff6ff"
-    primaryBorderColor: "#93c5fd"
-    primaryTextColor: "#1e40af"
-    lineColor: "#94a3b8"
-    fontFamily: "ui-sans-serif, system-ui, sans-serif"
-    fontSize: "13px"
----
-stateDiagram-v2
-    [*] --> NotRunning
-    NotRunning --> Running: ergosum-proxy
-    NotRunning --> LaunchAgent: ergosum-proxy install
-    Running --> Paused: ergosum-proxy stop
-    LaunchAgent --> Paused: ergosum-proxy stop
-    Paused --> Running: ergosum-proxy resume
-    Running --> NotRunning: ergosum-proxy uninstall
-    Paused --> NotRunning: ergosum-proxy uninstall
-    LaunchAgent --> NotRunning: ergosum-proxy uninstall
-
-    note right of Running
-        ANTHROPIC_BASE_URL set
-        trimming active
-    end note
-    note right of Paused
-        proxy still up
-        passthrough mode
-        Claude Code stays connected
-    end note
-    note right of LaunchAgent
-        survives reboots
-        starts on login
-        runs with --persistent
-    end note
-```
+![Lifecycle](docs/lifecycle.svg)
 
 `stop` and `uninstall` are different on purpose: killing the proxy while Claude Code has `ANTHROPIC_BASE_URL` pointed at it would break the live session. `stop` instead flips the proxy into passthrough mode so the connection stays open while trimming pauses.
 
