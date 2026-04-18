@@ -12,11 +12,11 @@ What you'll find in the audit:
 
 - Only hits `api.anthropic.com` and the public `/api/cli/proxy/*` endpoints on your ErgoSum server
 - No hardcoded tokens, keys, or URLs beyond those two
-- Token read from local `conf` storage (`~/.config/ergosum/`) or `ERGOSUM_TOKEN` env var
+- Token read from local `conf` storage (`~/Library/Preferences/ergosum-nodejs/config.json` on macOS, `~/.config/ergosum/config.json` elsewhere) or `ERGOSUM_TOKEN` env var
 - Optional OAuth bridge reads Claude Code's own token from macOS keychain via the official `security` command
-- All file writes are to user-local paths (`~/.config/ergosum/`, `~/.claude/settings.json`, `~/.codex/config.toml`, `~/Library/LaunchAgents/`)
+- File writes are confined to `~/.config/ergosum/` (PID + pause + mode config), `~/.claude/settings.json`, `~/.codex/config.toml`, `~/Library/LaunchAgents/`, and `/tmp/ergosum-proxy.log`
 - Server failures (unreachable, timeout >800ms) fall through to passthrough mode — the original request is forwarded untrimmed
-- Defensive hardening: rejects requests missing `anthropic-version` header, validates path prefix, bounded timeouts on every network call
+- Defensive hardening: rejects requests missing `anthropic-version` header, validates path prefix, bounded timeouts on every call to the ErgoSum server
 
 ## Install
 
@@ -83,19 +83,12 @@ The proxy touches one header: `x-api-key`. Default mode forwards it unchanged. `
 
 `Authorization: Bearer …` headers (OpenAI, Codex, any other provider) are never touched in either mode.
 
-## Modes
-
-- `inject` (default) — priority trim + retrieval + system fragment injection
-- `smart` — GPT-based compression of old turns server-side
-
-Set via `ergosum-proxy --mode inject|smart`.
-
 ## Security notes
 
 - The proxy validates every request has an `anthropic-version` header to raise the bar against local process abuse
 - Only paths matching `/v1/*` are forwarded; all others return 403
 - Upstream host is hardcoded to `api.anthropic.com` — no SSRF surface
-- All network calls have bounded timeouts
+- Calls to the ErgoSum server are bounded (800ms for `/prepare`); the upstream stream to `api.anthropic.com` is left unbounded since SSE responses are long-lived
 - The proxy never logs request bodies; only request counts and token estimates to `/tmp/ergosum-proxy.log`
 
 ## Contributing
