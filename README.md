@@ -66,6 +66,7 @@ Every request goes through the same decision tree. Any passthrough branch means 
 ```mermaid
 ---
 config:
+  look: handDrawn
   theme: base
   themeVariables:
     primaryColor: "#f8fafc"
@@ -117,6 +118,7 @@ The only content-aware call the proxy makes. Everything it sends, everything it 
 ```mermaid
 ---
 config:
+  look: handDrawn
   theme: base
   themeVariables:
     primaryColor: "#f8fafc"
@@ -154,6 +156,7 @@ sequenceDiagram
 ```mermaid
 ---
 config:
+  look: handDrawn
   theme: base
   themeVariables:
     primaryColor: "#eff6ff"
@@ -199,6 +202,7 @@ The proxy touches one header: `x-api-key`. Default mode forwards it unchanged. `
 ```mermaid
 ---
 config:
+  look: handDrawn
   theme: base
   themeVariables:
     primaryColor: "#eff6ff"
