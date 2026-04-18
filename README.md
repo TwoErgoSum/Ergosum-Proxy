@@ -129,7 +129,8 @@ stateDiagram-v2
     NotRunning --> Running: ergosum-proxy
     NotRunning --> LaunchAgent: ergosum-proxy install
     Running --> Paused: ergosum-proxy stop
-    Paused --> Running: ergosum-proxy (resume)
+    LaunchAgent --> Paused: ergosum-proxy stop
+    Paused --> Running: ergosum-proxy resume
     Running --> NotRunning: ergosum-proxy uninstall
     Paused --> NotRunning: ergosum-proxy uninstall
     LaunchAgent --> NotRunning: ergosum-proxy uninstall
@@ -144,9 +145,9 @@ stateDiagram-v2
         Claude Code stays connected
     end note
     note right of LaunchAgent
-        survives reboot
+        survives reboots
         starts on login
-        --persistent flag on
+        runs with --persistent
     end note
 ```
 
